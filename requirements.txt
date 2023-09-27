@@ -9,3 +9,5 @@ pandas[parquet]>=2.0.0
 scipy
 argparse
 tensorboard
+torchvision
+tqdm

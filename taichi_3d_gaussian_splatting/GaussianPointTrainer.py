@@ -8,7 +8,7 @@ from .LossFunction import LossFunction
 import torch
 import argparse
 from dataclass_wizard import YAMLWizard
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
 import torchvision.transforms as transforms
@@ -52,10 +52,10 @@ class GaussianPointCloudTrainer:
         half_downsample_factor_interval: int = 250
         summary_writer_log_dir: str = "logs"
         output_model_dir: Optional[str] = None
-        rasterisation_config: GaussianPointCloudRasterisation.GaussianPointCloudRasterisationConfig = GaussianPointCloudRasterisation.GaussianPointCloudRasterisationConfig()
-        adaptive_controller_config: GaussianPointAdaptiveController.GaussianPointAdaptiveControllerConfig = GaussianPointAdaptiveController.GaussianPointAdaptiveControllerConfig()
-        gaussian_point_cloud_scene_config: GaussianPointCloudScene.PointCloudSceneConfig = GaussianPointCloudScene.PointCloudSceneConfig()
-        loss_function_config: LossFunction.LossFunctionConfig = LossFunction.LossFunctionConfig()
+        rasterisation_config: GaussianPointCloudRasterisation.GaussianPointCloudRasterisationConfig = field(default_factory=GaussianPointCloudRasterisation.GaussianPointCloudRasterisationConfig())
+        adaptive_controller_config: GaussianPointAdaptiveController.GaussianPointAdaptiveControllerConfig = field(default_factory=GaussianPointAdaptiveController.GaussianPointAdaptiveControllerConfig())
+        gaussian_point_cloud_scene_config: GaussianPointCloudScene.PointCloudSceneConfig = field(default_factory=GaussianPointCloudScene.PointCloudSceneConfig())
+        loss_function_config: LossFunction.LossFunctionConfig = field(default_factory=LossFunction.LossFunctionConfig())
 
     def __init__(self, config: TrainConfig):
         self.config = config
@@ -91,6 +91,7 @@ class GaussianPointCloudTrainer:
             config=self.config.loss_function_config)
         
         self.best_psnr_score = 0.
+        print(f'gaussian potin trianer initiated')
 
         # move scene to GPU
 
@@ -116,7 +117,8 @@ class GaussianPointCloudTrainer:
         return image, resized_camera_info
 
     def train(self):
-        ti.init(arch=ti.cuda, device_memory_GB=0.1, kernel_profiler=self.config.enable_taichi_kernel_profiler) # we don't use taichi fields, so we don't need to allocate memory, but taichi requires the memory to be allocated > 0
+        # ti.init(arch=ti.cuda, device_memory_GB=0.1, kernel_profiler=self.config.enable_taichi_kernel_profiler) # we don't use taichi fields, so we don't need to allocate memory, but taichi requires the memory to be allocated > 0
+        ti.init(arch=ti.cuda, device_memory_GB=0.1)
         train_data_loader = torch.utils.data.DataLoader(
             self.train_dataset, batch_size=None, shuffle=True, pin_memory=True, num_workers=4)
         val_data_loader = torch.utils.data.DataLoader(
